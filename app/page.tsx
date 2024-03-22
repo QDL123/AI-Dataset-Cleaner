@@ -17,7 +17,7 @@ export default function Home() {
   const [selectedMessages, setSelectedMessages] = useState<number[]>([]);
   const [shiftKeyHeld, setShiftKeyHeld] = useState(false);
 
-  const editPromptRef = useRef(null);
+  const editPromptRef = useRef<HTMLTextAreaElement>(null);
 
   const handleEdit = async () => {
     if (editPromptRef.current) {
