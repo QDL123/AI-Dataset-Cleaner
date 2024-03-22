@@ -12,6 +12,27 @@ export interface Message {
   content: string;
 }
 
+async function fetchWithTimeout(url: string, options: RequestInit = {}, timeout: number = 30000): Promise<Response> {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    // Add the signal to the fetch options
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    clearTimeout(id); // Clear the timeout if the fetch completes in time
+    return response; // Proceed with handling the response
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      // Handle fetch request being aborted due to timeout
+      throw new Error('Fetch request timed out');
+    } else {
+      // Rethrow any other errors
+      throw error;
+    }
+  }
+}
+
+
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [selectedMessages, setSelectedMessages] = useState<number[]>([]);
@@ -25,7 +46,7 @@ export default function Home() {
       
       try {
         console.log('Making call to OPEN AI');
-        const response = await fetch('/api/openai', {
+        const response = await fetchWithTimeout('/api/openai', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
